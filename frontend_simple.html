@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChatBot Bancaire - Interface Simple</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+        
+        .chat-container {
+            padding: 30px;
+            height: 500px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .message {
+            margin-bottom: 15px;
+            padding: 12px 16px;
+            border-radius: 18px;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+        
+        .message.user {
+            background: #007bff;
+            color: white;
+            margin-left: auto;
+            border-bottom-right-radius: 4px;
+        }
+        
+        .message.bot {
+            background: #e9ecef;
+            color: #333;
+            margin-right: auto;
+            border-bottom-left-radius: 4px;
+        }
+        
+        .message.system {
+            background: #28a745;
+            color: white;
+            margin: 10px auto;
+            text-align: center;
+            border-radius: 20px;
+            font-size: 0.9em;
+        }
+        
+        .chat-input {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .chat-input input {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 25px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        
+        .chat-input input:focus {
+            border-color: #007bff;
+        }
+        
+        .chat-input button {
+            padding: 15px 25px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s;
+        }
+        
+        .chat-input button:hover {
+            background: #0056b3;
+        }
+        
+        .chat-input button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        
+        .suggestions {
+            margin-top: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .suggestion {
+            padding: 8px 16px;
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+        
+        .suggestion:hover {
+            background: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+        
+        .status {
+            text-align: center;
+            padding: 10px;
+            background: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+            font-size: 14px;
+            color: #6c757d;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #007bff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏦 ChatBot Bancaire</h1>
+            <p>Assistant intelligent pour vos questions d'assurance</p>
+        </div>
+        
+        <div class="chat-container">
+            <div class="chat-messages" id="chatMessages">
+                <div class="message system">
+                    🎉 Bienvenue ! Je suis votre assistant bancaire. Posez-moi vos questions sur les produits d'assurance.
+                </div>
+            </div>
+            
+            <div class="chat-input">
+                <input type="text" id="messageInput" placeholder="Tapez votre question..." maxlength="500">
+                <button id="sendButton" onclick="sendMessage()">Envoyer</button>
+            </div>
+            
+            <div class="suggestions">
+                <div class="suggestion" onclick="askQuestion('Quels sont vos produits d\'assurance vie ?')">
+                    Produits d'assurance vie
+                </div>
+                <div class="suggestion" onclick="askQuestion('Comment fonctionne l\'assurance santé ?')">
+                    Assurance santé
+                </div>
+                <div class="suggestion" onclick="askQuestion('Quelles sont les garanties auto ?')">
+                    Garanties auto
+                </div>
+                <div class="suggestion" onclick="askQuestion('Comment faire un devis ?')">
+                    Faire un devis
+                </div>
+            </div>
+        </div>
+        
+        <div class="status" id="status">
+            💡 Utilisez les suggestions ou tapez votre question
+        </div>
+    </div>
+
+    <script>
+        let isWaiting = false;
+        const API_BASE_URL = 'http://localhost:8000';
+        
+        // Vérifier la connexion à l'API au chargement
+        window.addEventListener('load', async () => {
+            try {
+                const response = await fetch(`${API_BASE_URL}/health`);
+                if (response.ok) {
+                    document.getElementById('status').textContent = '✅ Connecté à l\'API - Posez votre question';
+                } else {
+                    document.getElementById('status').textContent = '⚠️ API non disponible - Mode démo activé';
+                }
+            } catch (error) {
+                document.getElementById('status').textContent = '⚠️ API non disponible - Mode démo activé';
+                console.log('Mode démo activé - API non accessible');
+            }
+        });
+        
+        function addMessage(text, type = 'bot', sources = null, confidence = null) {
+            const messagesDiv = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            
+            // Texte principal
+            let messageContent = text;
+            
+            // Ajouter les sources si disponibles
+            if (sources && sources.length > 0) {
+                messageContent += '\n\n📚 **Sources consultées** :';
+                sources.forEach((source, index) => {
+                    const relevance = Math.round(source.relevance * 100);
+                    const typeIcon = source.type === 'principal' ? '⭐' : '📄';
+                    const relevanceIcon = source.relevance >= 0.8 ? '🔴' : 
+                                       source.relevance >= 0.6 ? '🟡' : 
+                                       source.relevance >= 0.4 ? '🟠' : '🔵';
+                    
+                    messageContent += `\n${typeIcon} **${source.file}**`;
+                    messageContent += `\n   🏷️ ${source.category}`;
+                    if (source.subcategory) {
+                        messageContent += ` > ${source.subcategory}`;
+                    }
+                    messageContent += `\n   ${relevanceIcon} Pertinence : ${relevance}% (${source.relevance_level})`;
+                });
+            }
+            
+            // Ajouter le niveau de confiance si disponible
+            if (confidence !== null) {
+                const confidencePercent = Math.round(confidence * 100);
+                let confidenceText = '';
+                let confidenceIcon = '';
+                let confidenceColor = '';
+                
+                if (confidencePercent >= 80) {
+                    confidenceText = 'Très élevée';
+                    confidenceIcon = '🔴';
+                    confidenceColor = '🟢';
+                } else if (confidencePercent >= 60) {
+                    confidenceText = 'Élevée';
+                    confidenceIcon = '🟡';
+                    confidenceColor = '🟡';
+                } else if (confidencePercent >= 40) {
+                    confidenceText = 'Moyenne';
+                    confidenceIcon = '🟠';
+                    confidenceColor = '🟠';
+                } else {
+                    confidenceText = 'Modérée';
+                    confidenceIcon = '🔵';
+                    confidenceColor = '🔵';
+                }
+                
+                messageContent += `\n\n🎯 **Niveau de confiance** : ${confidenceIcon} ${confidenceText}`;
+                messageContent += `\n   📊 Score : ${confidencePercent}%`;
+                
+                // Ajouter des conseils selon le niveau de confiance
+                if (confidencePercent >= 80) {
+                    messageContent += '\n   ✅ Cette réponse est très fiable et basée sur des sources solides.';
+                } else if (confidencePercent >= 60) {
+                    messageContent += '\n   ⚠️ Cette réponse est fiable mais vous pouvez demander des précisions si nécessaire.';
+                } else if (confidencePercent >= 40) {
+                    messageContent += '\n   💡 Cette réponse donne des informations générales. N\'hésitez pas à poser des questions plus spécifiques.';
+                } else {
+                    messageContent += '\n   🔍 Cette réponse est basée sur des informations limitées. Je vous recommande de reformuler votre question.';
+                }
+            }
+            
+            messageDiv.textContent = messageContent;
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+        
+        function askQuestion(question) {
+            document.getElementById('messageInput').value = question;
+            sendMessage();
+        }
+        
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const button = document.getElementById('sendButton');
+            const message = input.value.trim();
+            
+            if (!message || isWaiting) return;
+            
+            // Ajouter le message utilisateur
+            addMessage(message, 'user');
+            input.value = '';
+            
+            // Désactiver l'input et le bouton
+            input.disabled = true;
+            button.disabled = true;
+            isWaiting = true;
+            
+            // Afficher le statut de chargement
+            document.getElementById('status').innerHTML = '<span class="loading"></span>Recherche en cours...';
+            
+            try {
+                // Appel à l'API
+                const response = await fetch(`${API_BASE_URL}/chat`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: message,
+                        user_id: 'default'
+                    })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    addMessage(data.response, 'bot', data.sources, data.confidence);
+                } else {
+                    // En cas d'erreur API, utiliser le mode démo
+                    const demoResponse = generateDemoResponse(message);
+                    addMessage(demoResponse, 'bot');
+                }
+                
+            } catch (error) {
+                console.log('Erreur API, utilisation du mode démo:', error);
+                // Mode démo en cas d'erreur
+                const demoResponse = generateDemoResponse(message);
+                addMessage(demoResponse, 'bot');
+            }
+            
+            // Réactiver l'input et le bouton
+            input.disabled = false;
+            button.disabled = false;
+            isWaiting = false;
+            input.focus();
+            
+            // Mettre à jour le statut
+            document.getElementById('status').textContent = '💡 Posez une nouvelle question ou utilisez les suggestions';
+        }
+        
+        function generateDemoResponse(message) {
+            // Réponses de démo quand l'API n'est pas disponible
+            const responses = [
+                `Je comprends votre question sur '${message}'. En mode démo, je simule une réponse basée sur nos documents d'assurance.`,
+                `Excellente question ! Selon nos conditions générales (mode démo), voici ce que je peux vous dire sur '${message}'.`,
+                `Pour répondre à votre question sur '${message}', j'analyserais normalement nos produits d'assurance correspondants.`,
+                `Merci pour cette question intéressante sur '${message}'. En mode normal, je vérifierais dans notre base de connaissances.`
+            ];
+            
+            return responses[Math.floor(Math.random() * responses.length)];
+        }
+        
+        // Permettre l'envoi avec Entrée
+        document.getElementById('messageInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+        
+        // Focus automatique sur l'input
+        document.getElementById('messageInput').focus();
+    </script>
+</body>
+</html>
